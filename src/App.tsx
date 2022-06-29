@@ -1,11 +1,15 @@
 import "./App.css";
 import SearchBar from "./components/Search";
 import styled from "styled-components";
+import { BiCameraMovie } from "react-icons/bi";
 
 function App() {
   return (
     <div className="App">
-      <Title>Series WatchTime Calculator</Title>
+      <TitleContainer>
+        <Title>Total Series Watchtime Calculator</Title>
+        <BiCameraMovie />
+      </TitleContainer>
       <SearchBar />
     </div>
   );
@@ -18,4 +22,13 @@ const Title = styled.h1`
       "Kanit",
     sans-serif;
   font-family: "Lexend Deca", sans-serif;
+  margin-right: 1rem;
+`;
+const TitleContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  @media (max-width: 700px) {
+    flex-direction: column;
+  }
 `;
