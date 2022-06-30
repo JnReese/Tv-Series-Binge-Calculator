@@ -4,6 +4,9 @@ import Autocomplete from "@mui/material/Autocomplete";
 import styled from "styled-components";
 import CardDisplay from "./CardDisplay";
 import Chip from "@mui/material/Chip";
+import * as React from "react";
+import LinearProgress from "@mui/material/LinearProgress";
+import CircularProgress from "@mui/material/CircularProgress";
 import { uniq } from "lodash";
 import { useState, useEffect } from "react";
 
@@ -28,16 +31,20 @@ export default function FreeSolo() {
   const [errorPop, setErrorPop] = useState<boolean>(false);
   const [everyId, setEveryId] = useState<number[]>([]);
   const [searchHit, setSearchHit] = useState<boolean>(false);
+  const [loadingResponse, setLoadingResponse] = useState<boolean>(false);
+  const [loadingAutoFill, setLoadingAutoFill] = useState<boolean>(false);
   const [seriesPoster, setSeriesPoster] = useState<string | undefined>("");
   const [allEpisodes, setAllEpisodes] = useState<EpisodeList[]>([]);
 
-  console.log(everyId);
+  console.log(loadingResponse);
 
   useEffect(() => {
     if (searchSeriesTerm) {
+      setLoadingAutoFill(true);
       fetch(`https://api.tvmaze.com/search/shows?q=${searchSeriesTerm}`)
         .then((response) => response.json())
-        .then((data) => setSearchSeriesResults(data));
+        .then((data) => setSearchSeriesResults(data))
+        .finally(() => setLoadingAutoFill(false));
       if (searchSeriesResults.map((result) => result.show?.id)) {
         setEveryId(searchSeriesResults.map((series) => series.show.id));
       }
@@ -59,10 +66,12 @@ export default function FreeSolo() {
 
   const handleSeriesButtonPressed = () => {
     setSearchHit(true);
+    setLoadingResponse(true);
     if (searchSeriesResults.length !== 0) {
       fetch(`https://api.tvmaze.com/shows/${everyId[0]}/episodes`)
         .then((response) => response.json())
-        .then((data) => setAllEpisodes(data));
+        .then((data) => setAllEpisodes(data))
+        .finally(() => setLoadingResponse(false));
       setErrorPop(false);
     } else {
       setErrorPop(true);
@@ -78,26 +87,33 @@ export default function FreeSolo() {
   return (
     <OverallContainer>
       <SearchAndButtonContainer>
-        <Stack spacing={2} sx={{ width: 300 }}>
-          <Autocomplete
-            freeSolo
-            id="free-solo-2-demo"
-            disableClearable
-            options={uniq(searchSeriesResults.map((show) => show?.show?.name))}
-            onChange={handleUserPickedShow}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Search input"
-                InputProps={{
-                  ...params.InputProps,
-                  type: "search",
-                }}
-                onChange={handleShowSearch}
-              />
-            )}
-          />
-        </Stack>
+        <SearchAndLoaderConatiner>
+          {loadingAutoFill ? (
+            <Stack sx={{ color: "grey.500" }} spacing={1} mx={1} direction="row">
+              <CircularProgress className="autofillLoader" color="success" />
+            </Stack>
+          ) : null}
+          <Stack spacing={2} sx={{ width: 300 }}>
+            <Autocomplete
+              freeSolo
+              id="free-solo-2-demo"
+              disableClearable
+              options={uniq(searchSeriesResults.map((show) => show?.show?.name))}
+              onChange={handleUserPickedShow}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Search input"
+                  InputProps={{
+                    ...params.InputProps,
+                    type: "search",
+                  }}
+                  onChange={handleShowSearch}
+                />
+              )}
+            />
+          </Stack>
+        </SearchAndLoaderConatiner>
         <InputSearchButton
           className="searchButton"
           onClick={(e) => {
@@ -108,6 +124,13 @@ export default function FreeSolo() {
           View Series Stats
         </InputSearchButton>
       </SearchAndButtonContainer>
+
+      {loadingResponse ? (
+        <Stack sx={{ width: "25%", color: "grey.500" }} spacing={2}>
+          <LinearProgress color="success" />
+        </Stack>
+      ) : null}
+
       {errorPop ? <Chip label="No Valid Search Input" color="warning" /> : null}
       <CardDisplay seriesPoster={seriesPoster} allEpisodes={allEpisodes} searchHit={searchHit} />
     </OverallContainer>
@@ -119,6 +142,9 @@ const OverallContainer = styled.div`
   flex-direction: column;
   align-items: center;
   margin-top: 2rem;
+  .autofillLoader {
+    position: relative;
+  }
 `;
 const SearchAndButtonContainer = styled.div`
   display: flex;
@@ -130,6 +156,14 @@ const SearchAndButtonContainer = styled.div`
     .searchButton {
       margin-top: 2rem;
     }
+  }
+`;
+const SearchAndLoaderConatiner = styled.div`
+  display: flex;
+  justify-content: center;
+  @media (max-width: 700px) {
+    flex-direction: row;
+    margin-top: 2rem;
   }
 `;
 const InputSearchButton = styled.button`
