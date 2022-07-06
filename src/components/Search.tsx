@@ -36,8 +36,6 @@ export default function FreeSolo() {
   const [seriesPoster, setSeriesPoster] = useState<string | undefined>("");
   const [allEpisodes, setAllEpisodes] = useState<EpisodeList[]>([]);
 
-  console.log(loadingResponse);
-
   useEffect(() => {
     if (searchSeriesTerm) {
       setLoadingAutoFill(true);
@@ -66,8 +64,8 @@ export default function FreeSolo() {
 
   const handleSeriesButtonPressed = () => {
     setSearchHit(true);
-    setLoadingResponse(true);
     if (searchSeriesResults.length !== 0) {
+      setLoadingResponse(true);
       fetch(`https://api.tvmaze.com/shows/${everyId[0]}/episodes`)
         .then((response) => response.json())
         .then((data) => setAllEpisodes(data))
@@ -185,16 +183,13 @@ const InputSearchButton = styled.button`
   touch-action: manipulation;
   margin-bottom: 1rem;
   margin-left: 2rem;
-
   &:hover {
     background-color: #fff;
   }
-
   &:active {
     box-shadow: #422800 2px 2px 0 0;
     transform: translate(2px, 2px);
   }
-
   @media (min-width: 768px) {
     .button-74 {
       min-width: 120px;
